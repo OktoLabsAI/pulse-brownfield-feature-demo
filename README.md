@@ -1,75 +1,130 @@
 # pulse-brownfield-feature-demo
 
-One spec. Two independent agents. A feature implemented into a real existing backend and governed end-to-end by Okto Pulse.
+One spec. Two independent agents. A board that won't let either one mark its own homework done.
 
-Table of contents
-- [Project overview](#project-overview)
-- [Quick links](#quick-links)
-- [Highlights](#highlights)
-- [Repository structure](#repository-structure)
-- [Board & demo data](#board--demo-data)
-- [Prerequisites](#prerequisites)
-- [Quickstart](#quickstart)
-- [Running the target app](#running-the-target-app)
-- [Sprint plan & tasks](#sprint-plan--tasks)
-- [Roles & responsibilities](#roles--responsibilities)
-- [Tools used](#tools-used)
-- [Where to find artifacts](#where-to-find-artifacts)
-- [Contributing & licensing](#contributing--licensing)
+A real feature — threaded comment replies with @mention notifications — built on a real existing codebase, governed end-to-end by Okto Pulse.
+
+[About OktoLabs](#about-oktolabs) · [About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
 
 ---
 
-## Project overview
+## About OktoLabs
 
-This repository demonstrates adding threaded comment replies with @mention notifications to an existing FastAPI backend (`app/`) while exercising Okto Pulse's governance features. The demo uses two independent AI agents connected to the same Pulse board:
-- Builder (Executor): implements code and tests.
-- Validator: independently reviews submissions and gates approval.
+OktoLabs is a small team building developer tooling for AI-assisted software delivery. Their public work is organized under the `OktoLabsAI` GitHub organization, currently six repositories:
 
-The repository contains a forked backend, a seeded SQLite board database, and reference exports representing the demo run.
+| Repo | What it is |
+| ---- | ---------- |
+| okto-pulse | The main product — a governed SDLC workbench for AI coding agents |
+| okto-pulse-core | The domain layer Pulse is built on (specs, gates, knowledge graph contracts) |
+| docs | Okto Pulse's public documentation site |
+| claude-plugins | OktoLabs' marketplace for Claude Code plugins |
+| mcp-replay-test | Tooling for replaying and testing MCP interactions |
+| marginalia-dist | Internal distribution tooling |
 
-## Quick links
-- Web UI (Okto Pulse): http://localhost:8100
-- MCP server: http://localhost:8101/mcp
-- Target backend: http://localhost:8000 (when running)
+OktoLabs' focus across all of it is the same: as AI agents write more of the actual code, someone still needs a system that keeps requirements, decisions, and delivery evidence connected — instead of trusting an agent's own summary of what it did.
 
-## Highlights
-- Spec-driven feature: reply threading and @mention resolution implemented from a Pulse spec.
-- Two-agent workflow: Builder and Validator identities enforce role separation.
-- Validation gate: sprint only closes after independent approval and passing test evidence.
+## About Okto Pulse
 
-## Repository structure
+Okto Pulse is a local-first SDLC workbench — it runs on your own machine, no account required — built for teams using AI coding agents who still want to be able to trace why something was built the way it was, and prove it was actually finished correctly.
+
+In plain terms: instead of an agent going straight from "here's an idea" to "here's the code," Pulse keeps every step explicit and connected:
+
+```
+Stories → Ideation → Refinement → Spec → Sprint → Tasks / Tests / Bugs
+```
+
+Every one of those stages produces a real, structured record — not just a chat transcript that disappears. Requirements, decisions, and test evidence stay linked to each other, so months later, "why does this work this way" has an actual answer. Agents interact with all of this through MCP; humans can look at the exact same board in a web UI.
+
+## The Problem
+
+AI coding agents are good at producing an implementation. They're not naturally good at proving that implementation actually satisfies what was asked — especially on a codebase that already has its own history and conventions.
+
+Three specific failure modes this repo is built to test directly, not just describe:
+
+- **Status can drift from reality.** A card can be marked "done," a sprint can close, tests can be marked "passed" — while the underlying code was never actually written. Nothing about a status label guarantees it's true.
+- **Self-review isn't review.** If the same agent that writes a card is also the one that approves it, "approved" just means "the agent still agrees with itself."
+- **A rule nobody enforces is a suggestion.** A guideline that only warns doesn't stop bad work from shipping — it just leaves a note next to it on the way out.
+
+Pulse is built with governance gates specifically meant to close these gaps. This repo doesn't take that at face value — it pushes on each one directly, on a real feature, and reports what actually happened.
+
+## How It Works
+
+This repo adds threaded comment replies with @mention notifications to an existing backend API, using two independent AI agents connected to the same Pulse board:
+
+1. **Spec first.** The feature — a self-referencing `parent_comment_id`, a `comment_mentions` table, reply threading, and @mention resolution — is fully specified in Pulse and validated before any implementation task is opened.
+2. **Builder implements.** One agent works through each implementation task: reviewing requirements, writing the code, and submitting the task for review with a completeness estimate and any noted deviation from spec.
+3. **Validator checks independently.** A separate agent reviews each submission — for confidence, completeness, and drift from spec — and approves or sends it back with a reason. A submission that falls short on any of those three is not approved, regardless of what the builder claims.
+4. **Tests are run, not just written.** Test tasks require the scenario to actually execute and pass — automated execution alone isn't accepted as evidence.
+5. **The sprint only closes when every task genuinely clears.** All implementation tasks approved, all test scenarios passing, the sprint evaluated and closed, the spec marked complete — in that order, not asserted out of order.
+
+## Architecture
+
+Two agents — Builder (Executor) and Validator — both read and write to the same Pulse board over MCP, with permissions that structurally separate what each is allowed to do. The Builder moves cards through `started → in_progress → validation`; only the Validator can move a card from `validation → done`. Everything either agent does traces back through the same spec → sprint → task lineage.
+
+*(Diagram pending — will show the Builder/Validator agents against the shared Pulse board, and where the validation gate sits between "submitted" and "done.")*
+
+## Repository Structure
 
 | Path | Purpose |
 | ---- | ------- |
-| README.md | This document |
-| app/ | Forked FastAPI backend under test |
-| app/FORK_NOTES.md | Notes for the fork and build fixes |
-| data/pulse.db | Bundled SQLite board for the demo (seed data) |
-| docs/ | Walkthrough docs, reference run exports, and images |
-| docker-compose.yml | Optional compose for demo services |
-| LICENSE | Project license |
+| `README.md` | This document |
+| `app/` | Forked FastAPI backend under test (`nsidnev/fastapi-realworld-example-app`) |
+| `app/FORK_NOTES.md` | Notes on the fork and how it was set up |
+| `data/pulse.db` | Bundled SQLite board for the demo (seed data) |
+| `docs/decisions/` | Recorded pre-existing conventions (e.g. `0001-token-auth-scheme.md`) |
+| `docs/pulse-walkthrough/` | Walkthrough docs and captured prompts (`prompts/claude-code`, `prompts/gemini`) |
+| `docs/reference-run/` | JSON exports, screenshots, and `summary.md` from the reference run |
+| `docker-compose.yml` | Optional compose for demo services |
+| `LICENSE` | Project license |
 
-
-## Board & demo data
+## Board & Demo Data
 
 | Field | Value |
 | ----- | ----- |
 | Board name | `pulse-brownfield-feature-demo` |
 | Board ID | `af285ee4-9a28-4369-bc9a-ac5ab7c75c7b` |
-| Target application | `app/` (fork of nsidnev/fastapi-realworld-example-app) |
+| Target application | `app/` (fork of `nsidnev/fastapi-realworld-example-app`) |
 | Current pipeline checkpoint | Ideation: done (v6), Refinement: done (v4), Spec: approved (v20), Sprints & Cards: N/A |
 
 This snapshot is intended to run the validation gate and exercise the feature in the running app.
+
+## Roles
+
+Okto Pulse enforces role separation through permission presets — not just instructions either agent could ignore. Four presets exist on the platform:
+
+| Preset | Can do | Cannot do |
+| ------ | ------ | --------- |
+| Spec Writer | Owns ideation, refinement, and spec content | Cannot move a spec past approved |
+| Executor (Builder, this repo) | Implements tasks, moves cards through `started → in_progress → validation` | Cannot submit a validation or move a card to done |
+| Validator (this repo) | Submits task/spec validation, moves cards `validation → done` | Does not implement |
+| QA | Writes test scenarios | Cannot submit any gate |
+
+This repo uses two agent identities specifically: one on the Executor preset (the Builder), one on the Validator preset. Each is a separate connection with its own credentials — not a shared identity switching roles, since that would defeat the separation at the connection level, not just the permission level.
+
+## Tools Used
+
+A sample of the real MCP tools this workflow runs on (Okto Pulse currently exposes 312 core MCP tools over `okto-pulse serve`):
+
+| Tool | Used for |
+| ---- | -------- |
+| `okto_pulse_get_task_context` | Builder pulls a task's requirements and linked spec context before implementing |
+| `okto_pulse_move_card` | Moving a task through its status lifecycle |
+| `okto_pulse_submit_task_validation` | Validator submits a confidence/completeness/drift assessment |
+| `okto_pulse_get_traceability_report` | Tracing shipped code back through its task, spec, and originating decision |
+| `okto_pulse_get_board_guidelines` | Checking what governance rules are actually active on the board |
+| `okto_pulse_submit_sprint_evaluation` | Closing out the sprint once every task clears |
 
 ## Prerequisites
 
 | Requirement | Notes |
 | ----------- | ----- |
 | Python 3.11+ | Required by Okto Pulse |
-| Two separate agent connections | One Executor (Builder) and one Validator — do not share credentials |
+| Two separate agent connections | One Executor, one Validator — do not share credentials between them |
 | Docker (optional) | If you prefer containerized Postgres / app runtime |
 
 ## Quickstart
+
+Sourced directly from Okto Pulse's own install steps.
 
 1. Install Okto Pulse (CLI & local services):
 
@@ -83,7 +138,7 @@ pip install okto-pulse
 okto-pulse init
 ```
 
-This creates the local data directory (~/.okto-pulse/), a default board and agent, and a project-local .mcp.json pointing agents at the local MCP server.
+This creates the local data directory (`~/.okto-pulse/`), a default board and agent, and a project-local `.mcp.json` pointing agents at the local MCP server.
 
 3. Seed the demo board (copy bundled DB):
 
@@ -98,27 +153,32 @@ cp data/pulse.db ~/.okto-pulse/data/pulse.db
 okto-pulse serve
 ```
 
+| Endpoint | URL |
+| -------- | --- |
+| Web UI + API | http://localhost:8100 |
+| MCP server | http://localhost:8101/mcp |
+
 5. Open the UI at http://localhost:8100, select the `pulse-brownfield-feature-demo` board, and connect two agent identities (Executor and Validator) with separate MCP configs.
 
-## Running the target app (app/)
+## Running the target app (`app/`)
 
-The `app/` service is a Poetry-managed FastAPI app that runs against PostgreSQL.
+The `app/` service is a Poetry-managed FastAPI app that runs against PostgreSQL. When running, the backend is available at: http://localhost:8000
 
-1) Install PostgreSQL (15+ recommended). Example macOS (Homebrew):
+1. Install PostgreSQL (15+ recommended). Example macOS (Homebrew):
 
 ```bash
 brew install postgresql@15
 brew services start postgresql@15
 ```
 
-2) Create the default role and database (example):
+2. Create the default role and database (example):
 
 ```bash
 psql postgres -c "CREATE ROLE postgres WITH LOGIN PASSWORD 'postgres' SUPERUSER;"
 psql postgres -U postgres -c "CREATE DATABASE rwdb;"
 ```
 
-3) Install dependencies and start the app:
+3. Install dependencies and start the app:
 
 ```bash
 cd app
@@ -128,67 +188,74 @@ poetry run alembic upgrade head
 poetry run uvicorn app.main:app --reload
 ```
 
-If you see "ModuleNotFoundError: No module named 'pkg_resources'", install a pinned setuptools inside the poetry environment:
+See `app/FORK_NOTES.md` for fork-specific setup notes.
 
-```bash
-poetry run pip install "setuptools<81"
-```
+## Sprint Stages
 
-When running, the backend is available at: http://localhost:8000
+This is the actual execution plan this repo's Sprint 1 (Comments Threading + Mentions) runs on — six work items across four sequential stages.
 
-## Sprint plan & tasks
-
-Sprint 1 — Comments Threading + Mentions (six work items across four stages):
+**The six tasks**
 
 | Task | Depends on |
-| ---- | --------- |
-| Migration: add parent_comment_id column + comment_mentions table | — |
+| ---- | ---------- |
+| Migration: `parent_comment_id` column + `comment_mentions` table | — (start here) |
 | Implement reply threading (create + validation) | Migration |
 | Implement @mention parsing/resolution + read paths | Migration |
 | Test: Reply threading (create, depth limit, cross-article) | Threading implementation |
 | Test: @mentions resolution and listing | Mentions implementation |
 | Test: Cascade delete of replies | Threading implementation |
 
-Execution stages:
-- Stage 1 — Foundation: migration task (Builder) → Validator review
-- Stage 2 — Implementation: Builder implements threading and mentions; Validator reviews each
-- Stage 3 — Testing: Builder implements and runs test scenarios
-- Stage 4 — Close-out: Validator evaluates and closes sprint; spec marked complete
+**Builder responsibilities**
 
-Path to completion:
-- All implementation tasks reviewed & approved
-- All tests passing with genuine verification
-- Sprint evaluated and closed; spec marked complete
+For each implementation task: review the task's requirements and any linked material before starting, move it through its stages as work progresses, and on completion submit it for review with a summary of what was built, a completeness estimate, and any deviation from spec.
 
-## Roles & responsibilities
+For each test task: implement and run the assigned scenario(s), and only record a result as passed once it's actually been verified — automated execution alone isn't sufficient.
 
-| Preset | Can do | Cannot do |
-| ------ | ------ | --------- |
-| Spec Writer | Own ideation, refinement, and spec content | Cannot move a spec past approved |
-| Executor (Builder) | Implement tasks, move cards toward validation | Cannot submit a validation or move a card to done |
-| Validator | Submit task/spec validation, move cards validation → done | Does not implement |
-| QA | Write test scenarios | Cannot submit any gate |
+**Validator responsibilities**
 
-This demo uses two agent identities: one on the Executor preset (Builder) and one on the Validator preset. Each agent has separate credentials.
+Review every submitted implementation task independently of whoever built it. Assess confidence in the result, completeness against requirements, and drift from spec. Approve, or request changes with a clear reason. A submission that falls short on confidence, completeness, or drift is not approved, regardless of what the builder's own recommendation says.
 
-## Tools used (sample)
+**Execution order**
 
-| Tool | Purpose |
-| ---- | ------- |
-| okto_pulse_get_task_context | Builder pulls a task's requirements and linked spec context |
-| okto_pulse_move_card | Move a task through status lifecycle |
-| okto_pulse_submit_task_validation | Validator submits confidence/completeness/drift assessment |
-| okto_pulse_get_traceability_report | Trace shipped code back to task/spec/decision |
-| okto_pulse_get_board_guidelines | Check active governance rules on the board |
-| okto_pulse_submit_sprint_evaluation | Close out a sprint once every task clears |
+Work proceeds in four sequential stages; within a stage, tasks can run in any order or in parallel.
 
-## Where to find artifacts
-- data/pulse.db — SQLite database representing the live walkthrough state used by the demo.
-- docs/reference-run/ — JSON exports, transcript.md, screenshots, and summary with run metadata and object IDs.
-- app/ — FastAPI codebase fork where comments threading and mentions backend extension will be implemented. See `app/FORK_NOTES.md` for fork-specific notes.
+- **Stage 1 — Foundation**
+  1. Prompt the Builder on the migration task.
+  2. Prompt the Validator to review it once submitted.
+- **Stage 2 — Implementation** (both tasks depend only on the migration; can run in parallel)
+  3. Prompt the Builder on reply threading.
+  4. Prompt the Builder on @mentions.
+  5. Prompt the Validator to review reply threading.
+  6. Prompt the Validator to review @mentions.
+- **Stage 3 — Testing** (each test depends on its matching Stage 2 implementation)
+  7. Prompt the Builder on the reply threading test.
+  8. Prompt the Builder on the @mentions test.
+  9. Prompt the Builder on the cascade delete test.
+- **Stage 4 — Close-out**
+  10. Prompt the Validator to evaluate and close the sprint once every implementation task is approved and every test is passing.
+  11. Mark the specification complete.
 
-## Contributing
+**Path to completion**
+
+1. All three implementation tasks reviewed and approved.
+2. All three test tasks have their scenarios genuinely passing.
+3. The sprint is submitted for evaluation and closed on approval.
+4. The specification is marked complete only once all sprint work is closed out.
+
+## Where to Find Artifacts
+
+- `data/pulse.db` — SQLite database representing the live walkthrough state used by the demo.
+- `docs/reference-run/` — JSON exports, `summary.md`, and screenshots with run metadata and object IDs.
+- `docs/pulse-walkthrough/` — walkthrough notes and the actual prompts used with each agent (`prompts/claude-code`, `prompts/gemini`).
+- `docs/decisions/` — recorded pre-existing conventions the spec had to respect (e.g. `0001-token-auth-scheme.md`).
+- `app/` — FastAPI codebase fork where comments threading and mentions backend extension is implemented. See `app/FORK_NOTES.md` for fork-specific notes.
+
+## Contributing & Licensing
+
 If you want to reproduce the demo or iterate on the sprint: fork this repo, seed your local Okto Pulse data as above, and connect your Builder and Validator agent identities.
 
-## License
-This repository is provided under the terms of the included LICENSE file.
+This repository is provided under the terms of the included `LICENSE` file.
+
+## Conclusion
+
+Built on Okto Pulse, an OktoLabs product. Persistent, structural separation between building and checking — not a prompt both agents have to remember to follow.
