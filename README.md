@@ -2,13 +2,13 @@
 
 One spec. Two independent agents. A board that won't let either one mark its own homework done.
 
-A real feature — threaded comment replies with @mention notifications — built on a real existing codebase, governed end-to-end by Okto Pulse.
+A real feature (threaded comment replies with @mention notifications) built on a real existing codebase, governed end-to-end by Okto Pulse.
 
 [About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
 
 ## About Okto Pulse
 
-Okto Pulse is a local-first SDLC workbench — it runs on your own machine, no account required — built for teams using AI coding agents who still want to be able to trace why something was built the way it was, and prove it was actually finished correctly.
+Okto Pulse is a local-first SDLC workbench, running on your own machine with no account required, built for teams using AI coding agents who still want to be able to trace why something was built the way it was, and prove it was actually finished correctly.
 
 In plain terms: instead of an agent going straight from "here's an idea" to "here's the code," Pulse keeps every step explicit and connected:
 
@@ -16,33 +16,33 @@ In plain terms: instead of an agent going straight from "here's an idea" to "her
 Stories → Ideation → Refinement → Spec → Sprint → Tasks / Tests / Bugs
 ```
 
-Every one of those stages produces a real, structured record — not just a chat transcript that disappears. Requirements, decisions, and test evidence stay linked to each other, so months later, "why does this work this way" has an actual answer. Agents interact with all of this through MCP; humans can look at the exact same board in a web UI.
+Every one of those stages produces a real, structured record, not just a chat transcript that disappears. Requirements, decisions, and test evidence stay linked to each other, so months later, "why does this work this way" has an actual answer. Agents interact with all of this through MCP; humans can look at the exact same board in a web UI.
 
 ## The Problem
 
-AI coding agents are good at producing an implementation. They're not naturally good at proving that implementation actually satisfies what was asked — especially on a codebase that already has its own history and conventions.
+AI coding agents are good at producing an implementation. They're not naturally good at proving that implementation actually satisfies what was asked, especially on a codebase that already has its own history and conventions.
 
 Three specific failure modes this repo is built to test directly, not just describe:
 
-- **Status can drift from reality.** A card can be marked "done," a sprint can close, tests can be marked "passed" — while the underlying code was never actually written. Nothing about a status label guarantees it's true.
+- **Status can drift from reality.** A card can be marked "done," a sprint can close, tests can be marked "passed," while the underlying code was never actually written. Nothing about a status label guarantees it's true.
 - **Self-review isn't review.** If the same agent that writes a card is also the one that approves it, "approved" just means "the agent still agrees with itself."
-- **A rule nobody enforces is a suggestion.** A guideline that only warns doesn't stop bad work from shipping — it just leaves a note next to it on the way out.
+- **A rule nobody enforces is a suggestion.** A guideline that only warns doesn't stop bad work from shipping; it just leaves a note next to it on the way out.
 
-Pulse is built with governance gates specifically meant to close these gaps. This repo doesn't take that at face value — it pushes on each one directly, on a real feature, and reports what actually happened.
+Pulse is built with governance gates specifically meant to close these gaps. This repo doesn't take that at face value; it pushes on each one directly, on a real feature, and reports what actually happened.
 
 ## How It Works
 
 This repo adds threaded comment replies with @mention notifications to an existing backend API, using two independent AI agents connected to the same Pulse board:
 
-1. **Spec first.** The feature — a self-referencing `parent_comment_id`, a `comment_mentions` table, reply threading, and @mention resolution — is fully specified in Pulse and validated before any implementation task is opened.
+1. **Spec first.** The feature (a self-referencing `parent_comment_id`, a `comment_mentions` table, reply threading, and @mention resolution) is fully specified in Pulse and validated before any implementation task is opened.
 2. **Builder implements.** One agent works through each implementation task: reviewing requirements, writing the code, and submitting the task for review with a completeness estimate and any noted deviation from spec.
-3. **Validator checks independently.** A separate agent reviews each submission — for confidence, completeness, and drift from spec — and approves or sends it back with a reason. A submission that falls short on any of those three is not approved, regardless of what the builder claims.
-4. **Tests are run, not just written.** Test tasks require the scenario to actually execute and pass — automated execution alone isn't accepted as evidence.
-5. **The sprint only closes when every task genuinely clears.** All implementation tasks approved, all test scenarios passing, the sprint evaluated and closed, the spec marked complete — in that order, not asserted out of order.
+3. **Validator checks independently.** A separate agent reviews each submission, for confidence, completeness, and drift from spec, and approves or sends it back with a reason. A submission that falls short on any of those three is not approved, regardless of what the builder claims.
+4. **Tests are run, not just written.** Test tasks require the scenario to actually execute and pass; automated execution alone isn't accepted as evidence.
+5. **The sprint only closes when every task genuinely clears.** All implementation tasks approved, all test scenarios passing, the sprint evaluated and closed, the spec marked complete, in that order, not asserted out of order.
 
 ## Architecture
 
-Two agents — Builder (Executor) and Validator — both read and write to the same Pulse board over MCP, with permissions that structurally separate what each is allowed to do. The Builder moves cards through `started → in_progress → validation`; only the Validator can move a card from `validation → done`. Everything either agent does traces back through the same spec → sprint → task lineage.
+Two agents, Builder (Executor) and Validator, both read and write to the same Pulse board over MCP, with permissions that structurally separate what each is allowed to do. The Builder moves cards through `started → in_progress → validation`; only the Validator can move a card from `validation → done`. Everything either agent does traces back through the same spec → sprint → task lineage.
 
 ```mermaid
 flowchart TD
@@ -83,11 +83,11 @@ flowchart TD
 
 **Reading the flow**
 
-1. **Ideation → Refinement → Spec** — an idea is refined and turned into a spec before any task exists. A spec must be **approved** before its sprint opens.
-2. **Sprint → Tasks** — the sprint's implementation tasks and their matching test tasks are opened once the work they depend on is ready.
-3. **Task lifecycle** — every task moves `started → in_progress → validation`. Only the **Builder (Executor)** can drive it this far; the preset structurally blocks the Builder from self-approving.
-4. **Validator gate** — every submission is checked independently for confidence, completeness, and drift from spec. Approved tasks move to `done`; anything short on any of the three is sent back to `in_progress` with a reason — not silently passed through.
-5. **Sprint close-out** — only once every implementation task is approved *and* every test has genuinely passed (not just executed) does the Validator submit a sprint evaluation and close it. The spec is marked complete only after that.
+1. **Ideation → Refinement → Spec**: an idea is refined and turned into a spec before any task exists. A spec must be **approved** before its sprint opens.
+2. **Sprint → Tasks**: the sprint's implementation tasks and their matching test tasks are opened once the work they depend on is ready.
+3. **Task lifecycle**: every task moves `started → in_progress → validation`. Only the **Builder (Executor)** can drive it this far; the preset structurally blocks the Builder from self-approving.
+4. **Validator gate**: every submission is checked independently for confidence, completeness, and drift from spec. Approved tasks move to `done`; anything short on any of the three is sent back to `in_progress` with a reason, not silently passed through.
+5. **Sprint close-out**: only once every implementation task is approved *and* every test has genuinely passed (not just executed) does the Validator submit a sprint evaluation and close it. The spec is marked complete only after that.
 
 ## Repository Structure
 
@@ -116,7 +116,7 @@ This snapshot is intended to run the validation gate and exercise the feature in
 
 ## Roles
 
-Okto Pulse enforces role separation through permission presets — not just instructions either agent could ignore. Four presets exist on the platform:
+Okto Pulse enforces role separation through permission presets, not just instructions either agent could ignore. Four presets exist on the platform:
 
 | Preset | Can do | Cannot do |
 | ------ | ------ | --------- |
@@ -125,7 +125,7 @@ Okto Pulse enforces role separation through permission presets — not just inst
 | Validator (this repo) | Submits task/spec validation, moves cards `validation → done` | Does not implement |
 | QA | Writes test scenarios | Cannot submit any gate |
 
-This repo uses two agent identities specifically: one on the Executor preset (the Builder), one on the Validator preset. Each is a separate connection with its own credentials — not a shared identity switching roles, since that would defeat the separation at the connection level, not just the permission level.
+This repo uses two agent identities specifically: one on the Executor preset (the Builder), one on the Validator preset. Each is a separate connection with its own credentials, not a shared identity switching roles, since that would defeat the separation at the connection level, not just the permission level.
 
 ## Tools Used
 
@@ -145,7 +145,7 @@ A sample of the real MCP tools this workflow runs on (Okto Pulse currently expos
 | Requirement | Notes |
 | ----------- | ----- |
 | Python 3.11+ | Required by Okto Pulse |
-| Two separate agent connections | One Executor, one Validator — do not share credentials between them |
+| Two separate agent connections | One Executor, one Validator; do not share credentials between them |
 | Docker (optional) | If you prefer containerized Postgres / app runtime |
 
 ## Quickstart
@@ -218,13 +218,13 @@ See `app/FORK_NOTES.md` for fork-specific setup notes.
 
 ## Sprint Stages
 
-This is the actual execution plan this repo's Sprint 1 (Comments Threading + Mentions) runs on — six work items across four sequential stages.
+This is the actual execution plan this repo's Sprint 1 (Comments Threading + Mentions) runs on: six work items across four sequential stages.
 
 **The six tasks**
 
 | Task | Depends on |
 | ---- | ---------- |
-| Migration: `parent_comment_id` column + `comment_mentions` table | — (start here) |
+| Migration: `parent_comment_id` column + `comment_mentions` table | None (start here) |
 | Implement reply threading (create + validation) | Migration |
 | Implement @mention parsing/resolution + read paths | Migration |
 | Test: Reply threading (create, depth limit, cross-article) | Threading implementation |
@@ -235,7 +235,7 @@ This is the actual execution plan this repo's Sprint 1 (Comments Threading + Men
 
 For each implementation task: review the task's requirements and any linked material before starting, move it through its stages as work progresses, and on completion submit it for review with a summary of what was built, a completeness estimate, and any deviation from spec.
 
-For each test task: implement and run the assigned scenario(s), and only record a result as passed once it's actually been verified — automated execution alone isn't sufficient.
+For each test task: implement and run the assigned scenario(s), and only record a result as passed once it's actually been verified; automated execution alone isn't sufficient.
 
 **Validator responsibilities**
 
@@ -245,19 +245,19 @@ Review every submitted implementation task independently of whoever built it. As
 
 Work proceeds in four sequential stages; within a stage, tasks can run in any order or in parallel.
 
-- **Stage 1 — Foundation**
+- **Stage 1: Foundation**
   1. Prompt the Builder on the migration task.
   2. Prompt the Validator to review it once submitted.
-- **Stage 2 — Implementation** (both tasks depend only on the migration; can run in parallel)
+- **Stage 2: Implementation** (both tasks depend only on the migration; can run in parallel)
   3. Prompt the Builder on reply threading.
   4. Prompt the Builder on @mentions.
   5. Prompt the Validator to review reply threading.
   6. Prompt the Validator to review @mentions.
-- **Stage 3 — Testing** (each test depends on its matching Stage 2 implementation)
+- **Stage 3: Testing** (each test depends on its matching Stage 2 implementation)
   7. Prompt the Builder on the reply threading test.
   8. Prompt the Builder on the @mentions test.
   9. Prompt the Builder on the cascade delete test.
-- **Stage 4 — Close-out**
+- **Stage 4: Close-out**
   10. Prompt the Validator to evaluate and close the sprint once every implementation task is approved and every test is passing.
   11. Mark the specification complete.
 
@@ -270,11 +270,11 @@ Work proceeds in four sequential stages; within a stage, tasks can run in any or
 
 ## Where to Find Artifacts
 
-- `data/pulse.db` — SQLite database representing the live walkthrough state used by the demo.
-- `docs/reference-run/` — JSON exports, `summary.md`, and screenshots with run metadata and object IDs.
-- `docs/pulse-walkthrough/` — walkthrough notes and the actual prompts used with each agent (`prompts/claude-code`, `prompts/gemini`).
-- `docs/decisions/` — recorded pre-existing conventions the spec had to respect (e.g. `0001-token-auth-scheme.md`).
-- `app/` — FastAPI codebase fork where comments threading and mentions backend extension is implemented. See `app/FORK_NOTES.md` for fork-specific notes.
+- `data/pulse.db`: SQLite database representing the live walkthrough state used by the demo.
+- `docs/reference-run/`: JSON exports, `summary.md`, and screenshots with run metadata and object IDs.
+- `docs/pulse-walkthrough/`: walkthrough notes and the actual prompts used with each agent (`prompts/claude-code`, `prompts/gemini`).
+- `docs/decisions/`: recorded pre-existing conventions the spec had to respect (e.g. `0001-token-auth-scheme.md`).
+- `app/`: FastAPI codebase fork where comments threading and mentions backend extension is implemented. See `app/FORK_NOTES.md` for fork-specific notes.
 
 ## Contributing & Licensing
 
@@ -284,4 +284,4 @@ This repository is provided under the terms of the included `LICENSE` file.
 
 ## Conclusion
 
-Built on Okto Pulse, an OktoLabs product. Persistent, structural separation between building and checking — not a prompt both agents have to remember to follow.
+Built on Okto Pulse, an OktoLabs product. Persistent, structural separation between building and checking, not a prompt both agents have to remember to follow.
