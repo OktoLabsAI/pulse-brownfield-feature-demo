@@ -48,16 +48,10 @@ Two agents — Builder (Executor) and Validator — both read and write to the s
 flowchart TD
     A[Ideation] --> B[Refinement]
     B --> C{Spec}
-    C -->|approved| D[Sprint: Comments Threading + Mentions]
+    C -->|approved| D[Sprint]
 
-    D --> E[Task: Migration<br/>parent_comment_id + comment_mentions table]
-
-    E --> F[Task: Reply threading<br/>create + validation]
-    E --> G[Task: @mention parsing/resolution<br/>+ read paths]
-
-    F --> H[Task: Test reply threading<br/>create, depth limit, cross-article]
-    F --> J[Task: Test cascade delete of replies]
-    G --> I[Task: Test @mentions<br/>resolution and listing]
+    D --> E[Implementation tasks]
+    E --> F[Matching test tasks]
 
     subgraph Task Lifecycle [" "]
         direction LR
@@ -66,35 +60,31 @@ flowchart TD
 
     E -.-> T1
     F -.-> T1
-    G -.-> T1
-    H -.-> T1
-    I -.-> T1
-    J -.-> T1
 
     T3 --> V{Validator review<br/>confidence · completeness · drift}
     V -->|approved| Done[done]
     V -->|rejected: reason given| T2
 
-    Done --> K{All implementation tasks approved<br/>AND all tests genuinely passing?}
+    Done --> K{All tasks approved<br/>AND all tests genuinely passing?}
     K -->|no| D
     K -->|yes| L[Validator: submit_sprint_evaluation]
     L --> M[Sprint closed]
     M --> N[Spec marked complete]
 
-    style A fill:#e0e7ff,stroke:#4338ca
-    style B fill:#e0e7ff,stroke:#4338ca
-    style C fill:#fef3c7,stroke:#b45309
-    style D fill:#dcfce7,stroke:#15803d
-    style V fill:#fee2e2,stroke:#b91c1c
-    style Done fill:#dcfce7,stroke:#15803d
-    style M fill:#dbeafe,stroke:#1d4ed8
-    style N fill:#dbeafe,stroke:#1d4ed8
+    style A fill:#4338ca,stroke:#1e1b4b,color:#ffffff
+    style B fill:#4338ca,stroke:#1e1b4b,color:#ffffff
+    style C fill:#b45309,stroke:#451a03,color:#ffffff
+    style D fill:#15803d,stroke:#052e16,color:#ffffff
+    style V fill:#b91c1c,stroke:#450a0a,color:#ffffff
+    style Done fill:#15803d,stroke:#052e16,color:#ffffff
+    style M fill:#1d4ed8,stroke:#172554,color:#ffffff
+    style N fill:#1d4ed8,stroke:#172554,color:#ffffff
 ```
 
 **Reading the flow**
 
-1. **Ideation → Refinement → Spec** — the idea is refined and turned into a spec (self-referencing `parent_comment_id`, a `comment_mentions` table, reply threading, @mention resolution) before any task exists. A spec must be **approved** before Sprint 1 opens.
-2. **Sprint → Tasks** — the sprint contains six tasks across four stages: one migration task, two implementation tasks (threading, mentions) that both depend on the migration, and three test tasks that depend on their matching implementation.
+1. **Ideation → Refinement → Spec** — an idea is refined and turned into a spec before any task exists. A spec must be **approved** before its sprint opens.
+2. **Sprint → Tasks** — the sprint's implementation tasks and their matching test tasks are opened once the work they depend on is ready.
 3. **Task lifecycle** — every task moves `started → in_progress → validation`. Only the **Builder (Executor)** can drive it this far; the preset structurally blocks the Builder from self-approving.
 4. **Validator gate** — every submission is checked independently for confidence, completeness, and drift from spec. Approved tasks move to `done`; anything short on any of the three is sent back to `in_progress` with a reason — not silently passed through.
 5. **Sprint close-out** — only once every implementation task is approved *and* every test has genuinely passed (not just executed) does the Validator submit a sprint evaluation and close it. The spec is marked complete only after that.
