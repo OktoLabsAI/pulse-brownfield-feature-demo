@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+  <defs>
+    <radialGradient id="blobBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#bfe3f5"/>
+      <stop offset="45%" stop-color="#5f9bc4"/>
+      <stop offset="100%" stop-color="#5f9bc4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blobSteel" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3a5f7d"/>
+      <stop offset="55%" stop-color="#1c2e3f"/>
+      <stop offset="100%" stop-color="#1c2e3f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blobDark" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0d1520"/>
+      <stop offset="100%" stop-color="#0d1520" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soften" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eaf6ff" stop-opacity="0.10"/>
+      <stop offset="18%" stop-color="#eaf6ff" stop-opacity="0"/>
+      <stop offset="42%" stop-color="#eaf6ff" stop-opacity="0.06"/>
+      <stop offset="55%" stop-color="#eaf6ff" stop-opacity="0"/>
+      <stop offset="80%" stop-color="#eaf6ff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#eaf6ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="vignette" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.30"/>
+      <stop offset="35%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="420" fill="#05070a"/>
+
+  <g filter="url(#soften)">
+    <circle cx="150" cy="460" r="330" fill="url(#blobBlue)"/>
+    <circle cx="1040" cy="60" r="360" fill="url(#blobSteel)"/>
+    <circle cx="650" cy="500" r="300" fill="url(#blobDark)"/>
+  </g>
+
+  <rect width="1200" height="420" fill="url(#sheen)"/>
+  <rect width="1200" height="420" fill="url(#vignette)"/>
+  <rect width="1200" height="420" fill="#05070a" opacity="0.06"/>
+
+  <text x="90" y="190" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="700" fill="#eef6fb" letter-spacing="0.5">
+    pulse-brownfield-feature-demo
+  </text>
+  <text x="90" y="238" font-family="Georgia, 'Times New Roman', serif" font-size="22" fill="#b9c9d6" opacity="0.9">
+    two agents. one governed board.
+  </text>
+
+  <text x="90" y="335" font-family="'SFMono-Regular', 'Menlo', monospace" font-size="16" letter-spacing="2" fill="#7f93a3">
+    A SPEC, BUILT BY ONE AI AGENT AND INDEPENDENTLY VALIDATED BY ANOTHER
+  </text>
+</svg>

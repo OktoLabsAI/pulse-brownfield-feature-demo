@@ -1,10 +1,12 @@
 # pulse-brownfield-feature-demo
 
+![Two agents. One governed board.](docs/images/banner.svg)
+
 One spec. Two independent agents. A board that won't let either one mark its own homework done.
 
 A real feature (threaded comment replies with @mention notifications) built on a real existing codebase, governed end-to-end by Okto Pulse.
 
-[About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
+[About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Pulse in Action](#pulse-in-action) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
 
 ## About Okto Pulse
 
@@ -39,6 +41,22 @@ This repo adds threaded comment replies with @mention notifications to an existi
 3. **Validator checks independently.** A separate agent reviews each submission, for confidence, completeness, and drift from spec, and approves or sends it back with a reason. A submission that falls short on any of those three is not approved, regardless of what the builder claims.
 4. **Tests are run, not just written.** Test tasks require the scenario to actually execute and pass; automated execution alone isn't accepted as evidence.
 5. **The sprint only closes when every task genuinely clears.** All implementation tasks approved, all test scenarios passing, the sprint evaluated and closed, the spec marked complete, in that order, not asserted out of order.
+
+## Pulse in Action
+
+Real captures from this board, `pulse-brownfield-feature-demo`, moving through the pipeline for the actual feature this repo implements.
+
+**Ideation** — the problem statement and proposed approach, recorded before any code is written:
+
+![Ideation on the pulse-brownfield-feature-demo board](docs/images/pulse-ideation.png)
+
+**Refinement** — the ideation turned into a concrete data model and API surface, linked back to its parent ideation:
+
+![Refinement on the pulse-brownfield-feature-demo board](docs/images/pulse-refinement.png)
+
+**Spec** — the refinement turned into an approved, implementable spec, with tests, rules, and contracts tracked alongside it:
+
+![Spec on the pulse-brownfield-feature-demo board](docs/images/pulse-spec.png)
 
 ## Architecture
 
