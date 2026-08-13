@@ -4,24 +4,7 @@ One spec. Two independent agents. A board that won't let either one mark its own
 
 A real feature — threaded comment replies with @mention notifications — built on a real existing codebase, governed end-to-end by Okto Pulse.
 
-[About OktoLabs](#about-oktolabs) · [About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
-
----
-
-## About OktoLabs
-
-OktoLabs is a small team building developer tooling for AI-assisted software delivery. Their public work is organized under the `OktoLabsAI` GitHub organization, currently six repositories:
-
-| Repo | What it is |
-| ---- | ---------- |
-| okto-pulse | The main product — a governed SDLC workbench for AI coding agents |
-| okto-pulse-core | The domain layer Pulse is built on (specs, gates, knowledge graph contracts) |
-| docs | Okto Pulse's public documentation site |
-| claude-plugins | OktoLabs' marketplace for Claude Code plugins |
-| mcp-replay-test | Tooling for replaying and testing MCP interactions |
-| marginalia-dist | Internal distribution tooling |
-
-OktoLabs' focus across all of it is the same: as AI agents write more of the actual code, someone still needs a system that keeps requirements, decisions, and delivery evidence connected — instead of trusting an agent's own summary of what it did.
+[About Okto Pulse](#about-okto-pulse) · [The Problem](#the-problem) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Repository Structure](#repository-structure) · [Board & Demo Data](#board--demo-data) · [Roles](#roles) · [Tools Used](#tools-used) · [Prerequisites](#prerequisites) · [Quickstart](#quickstart) · [Running the Target App](#running-the-target-app-app) · [Sprint Stages](#sprint-stages) · [Where to Find Artifacts](#where-to-find-artifacts) · [Contributing & Licensing](#contributing--licensing) · [Conclusion](#conclusion)
 
 ## About Okto Pulse
 
