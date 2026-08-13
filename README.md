@@ -44,7 +44,60 @@ This repo adds threaded comment replies with @mention notifications to an existi
 
 Two agents — Builder (Executor) and Validator — both read and write to the same Pulse board over MCP, with permissions that structurally separate what each is allowed to do. The Builder moves cards through `started → in_progress → validation`; only the Validator can move a card from `validation → done`. Everything either agent does traces back through the same spec → sprint → task lineage.
 
-*(Diagram pending — will show the Builder/Validator agents against the shared Pulse board, and where the validation gate sits between "submitted" and "done.")*
+```mermaid
+flowchart TD
+    A[Ideation] --> B[Refinement]
+    B --> C{Spec}
+    C -->|approved| D[Sprint: Comments Threading + Mentions]
+
+    D --> E[Task: Migration<br/>parent_comment_id + comment_mentions table]
+
+    E --> F[Task: Reply threading<br/>create + validation]
+    E --> G[Task: @mention parsing/resolution<br/>+ read paths]
+
+    F --> H[Task: Test reply threading<br/>create, depth limit, cross-article]
+    F --> J[Task: Test cascade delete of replies]
+    G --> I[Task: Test @mentions<br/>resolution and listing]
+
+    subgraph Task Lifecycle [" "]
+        direction LR
+        T1[started] --> T2[in_progress] --> T3[validation]
+    end
+
+    E -.-> T1
+    F -.-> T1
+    G -.-> T1
+    H -.-> T1
+    I -.-> T1
+    J -.-> T1
+
+    T3 --> V{Validator review<br/>confidence · completeness · drift}
+    V -->|approved| Done[done]
+    V -->|rejected: reason given| T2
+
+    Done --> K{All implementation tasks approved<br/>AND all tests genuinely passing?}
+    K -->|no| D
+    K -->|yes| L[Validator: submit_sprint_evaluation]
+    L --> M[Sprint closed]
+    M --> N[Spec marked complete]
+
+    style A fill:#e0e7ff,stroke:#4338ca
+    style B fill:#e0e7ff,stroke:#4338ca
+    style C fill:#fef3c7,stroke:#b45309
+    style D fill:#dcfce7,stroke:#15803d
+    style V fill:#fee2e2,stroke:#b91c1c
+    style Done fill:#dcfce7,stroke:#15803d
+    style M fill:#dbeafe,stroke:#1d4ed8
+    style N fill:#dbeafe,stroke:#1d4ed8
+```
+
+**Reading the flow**
+
+1. **Ideation → Refinement → Spec** — the idea is refined and turned into a spec (self-referencing `parent_comment_id`, a `comment_mentions` table, reply threading, @mention resolution) before any task exists. A spec must be **approved** before Sprint 1 opens.
+2. **Sprint → Tasks** — the sprint contains six tasks across four stages: one migration task, two implementation tasks (threading, mentions) that both depend on the migration, and three test tasks that depend on their matching implementation.
+3. **Task lifecycle** — every task moves `started → in_progress → validation`. Only the **Builder (Executor)** can drive it this far; the preset structurally blocks the Builder from self-approving.
+4. **Validator gate** — every submission is checked independently for confidence, completeness, and drift from spec. Approved tasks move to `done`; anything short on any of the three is sent back to `in_progress` with a reason — not silently passed through.
+5. **Sprint close-out** — only once every implementation task is approved *and* every test has genuinely passed (not just executed) does the Validator submit a sprint evaluation and close it. The spec is marked complete only after that.
 
 ## Repository Structure
 
