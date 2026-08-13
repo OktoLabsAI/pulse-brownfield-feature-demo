@@ -1,125 +1,145 @@
-# pulse-brownfield-feature-demo
+# pulse-brownfield-feature-demo — Scenario Walkthrough
 
-This repository contains the `app/` fork under test, a backed-up SQLite database of the `okto-pulse` walkthrough board, and the corresponding exports representing the current active cycle.
-
----
-
-## 1. What the Demo Is
-
-A brownfield feature — **threaded replies + @mentions on article comments** — run through Okto Pulse's `ideation → refinement → spec → sprint` pipeline.
-- **Board name:** `pulse-brownfield-feature-demo`
-- **Board ID:** `af285ee4-9a28-4369-bc9a-ac5ab7c75c7b`
-- **Target application:** `app/`, a fork of [nsidnev/fastapi-realworld-example-app](https://github.com/nsidnev/fastapi-realworld-example-app) (FastAPI + Postgres RealWorld/Conduit clone).
+Scenario: You are a developer tasked with validating and integrating a brownfield feature — threaded replies and @mentions on article comments — into an existing RealWorld-style app. This repository contains everything you need to run the Okto Pulse board and the target app so you can reproduce the pipeline, run the validation gate, and exercise the feature end-to-end.
 
 ---
 
-## 2. Current Pipeline State
+## The Setup (what's in this repo)
 
-As of the current run, the board is at the **handoff phase right before validation**:
-- **Ideation** is **`done`** (v6).
-- **Refinement** is **`done`** (v4).
-- **Spec** is **`approved`** (v20) — successfully authored and promoted from `draft` -> `review` -> `approved`.
-- **Sprints & Cards** are **`N/A`** (no active tasks created yet).
+- `app/` — a fork of [nsidnev/fastapi-realworld-example-app](https://github.com/nsidnev/fastapi-realworld-example-app). This is the target application where the comments threading + mentions backend changes will be implemented and verified.
+- `data/pulse.db` — a backed-up SQLite database representing a pre-populated Okto Pulse board matching the demo scenario.
+- `docs/reference-run/` — JSON exports and a summary of the board, specs, ideations, refinements, and run history.
 
-This state represents the ideal checkpoint to run the validation gate (creating test cards, linking scenarios, executing the curated Spec checklist, and validating the spec).
-
-Full detail, IDs, and version numbers are documented in [`docs/reference-run/summary.md`](docs/reference-run/summary.md).
+Board details used in the scenario:
+- Board name: `pulse-brownfield-feature-demo`
+- Board ID: `af285ee4-9a28-4369-bc9a-ac5ab7c75c7b`
+- Target application: `app/` (FastAPI + Postgres RealWorld/Conduit clone)
 
 ---
 
-## 3. How to Run Okto Pulse (With Demo DB)
+## Scenario goal
 
-Follow these steps to spin up the Okto Pulse workbench with this repository's pre-populated board data:
+You will take the board from the handoff phase into validation, create test cards, link scenarios, run the curated Spec checklist, and validate the acceptance criteria for threaded replies and @mentions on article comments.
 
-### Step 3.1: Install Okto Pulse
-Make sure you have Python 3.11+ installed, then install `okto-pulse`:
+Current pipeline checkpoint (this repo snapshot):
+- Ideation: done (v6)
+- Refinement: done (v4)
+- Spec: approved (v20)
+- Sprints & Cards: N/A (no active tasks yet)
+
+This is the ideal point to run the validation gate and exercise the feature in the running app.
+
+Full IDs and versions are available in `docs/reference-run/summary.md`.
+
+---
+
+## Walkthrough — run the demo (steps to reproduce)
+
+1) Install Okto Pulse
+
+Make sure you have Python 3.11+ and install the CLI/workbench:
+
 ```bash
 pip install okto-pulse
 ```
 
-### Step 3.2: Initialize and Seed the Database
-Copy the demo database backup (`data/pulse.db`) to your local user data directory so Okto Pulse reads it on boot:
-```bash
-# Create the local data directory if it doesn't exist
-mkdir -p ~/.okto-pulse/data
+2) Seed the demo Okto Pulse database
 
-# Copy the database backup
+Copy the bundled SQLite demo data into your local Okto Pulse data directory so the workbench boots with the pre-populated board:
+
+```bash
+mkdir -p ~/.okto-pulse/data
 cp data/pulse.db ~/.okto-pulse/data/pulse.db
 ```
 
-### Step 3.3: Start the Okto Pulse Workbench
-Start both the Web UI and the MCP server in a single command:
+3) Start the Okto Pulse workbench
+
+This starts both the Web UI and the MCP server:
+
 ```bash
 okto-pulse serve
 ```
 
-* **Web UI URL:** [http://localhost:8100](http://localhost:8100) (select the `pulse-brownfield-feature-demo` board).
-* **MCP Server URL:** `http://localhost:8101/mcp` (or with API key: `http://localhost:8101/mcp?api_key=...`).
+- Web UI: http://localhost:8100 — select the `pulse-brownfield-feature-demo` board.
+- MCP API: http://localhost:8101/mcp (append `?api_key=...` if using an API key).
 
----
+4) Connect a coding agent (optional)
 
-## 4. How to Connect a Coding Agent via MCP
-
-To let your AI coding agent (like Claude Code, Claude Desktop, Cursor, or Cline) discover and operate on this board, initialize the agent configuration file in this repository:
+If you want to let an AI coding agent interact with the board via MCP, initialize the agent config in this repository:
 
 ```bash
 okto-pulse init --agents
 ```
-This generates a `.mcp.json` file in your repository root, which agents use to query board metadata, fetch spec requirements, and update task statuses.
 
----
+This creates a `.mcp.json` file which agents use to query board metadata, fetch spec requirements, and update tasks.
 
-## 5. How to Set Up and Run the Target Application (`app/`)
+5) Prepare and run the target application (`app/`)
 
-The application under test (`app/`) is a Poetry-managed FastAPI app running against a PostgreSQL database.
+The `app/` service is a Poetry-managed FastAPI backend running against PostgreSQL. Follow these steps to run it locally.
 
-### Step 5.1: Install PostgreSQL
-Ensure PostgreSQL (version 15+ recommended) is installed and running locally:
+- Install PostgreSQL (15+ recommended). Example for macOS (Homebrew):
+
 ```bash
-# On macOS (using Homebrew)
 brew install postgresql@15
 brew services start postgresql@15
 ```
 
-Create a default role and database matching the configuration:
+- Create the default role and database used by the app:
+
 ```bash
-# Connect to default postgres and create the user + db
 psql postgres -c "CREATE ROLE postgres WITH LOGIN PASSWORD 'postgres' SUPERUSER;"
 psql postgres -U postgres -c "CREATE DATABASE rwdb;"
 ```
 
-### Step 5.2: Install App Dependencies
-Navigate into the `app` directory and install the packages using Poetry:
+- Install Python dependencies and start the app:
+
 ```bash
 cd app
 poetry install
-```
-
-> [!NOTE]
-> **Dependency Rot Fix:** If you hit `ModuleNotFoundError: No module named 'pkg_resources'` on startup, it is due to setuptools version changes (v81+ dropped `pkg_resources` which `aiosql` depends on). Fix this inside your poetry shell:
-> ```bash
-> poetry run pip install "setuptools<81"
-> ```
-
-### Step 5.3: Run Database Migrations and Start the Server
-Create the `.env` file from the template and start the FastAPI reload server:
-```bash
-# Copy env variables
 cp .env.example .env
-
-# Run migrations
 poetry run alembic upgrade head
-
-# Start server
 poetry run uvicorn app.main:app --reload
 ```
-The FastAPI backend will now be live on `http://localhost:8000`.
+
+The backend will be available at: http://localhost:8000
+
+Note: If you encounter `ModuleNotFoundError: No module named 'pkg_resources'`, install an older setuptools pinned in your environment:
+
+```bash
+poetry run pip install "setuptools<81"
+```
 
 ---
 
-## 6. Where to Find Things
+## What to test (acceptance checklist — scenario steps)
 
-- `data/pulse.db` — SQLite database representing the live walkthrough state.
-- `docs/reference-run/` — JSON exports of the current board, specs, refinements, ideations, history, and activity logs.
-- `app/` — FastAPI codebase fork where the comments threading and mentions backend extension code will be implemented.
-- `app/FORK_NOTES.md` — Notes on the environment setup, dependency workarounds, and verification instructions.
+1) Setup verification
+- Confirm the `pulse-brownfield-feature-demo` board appears in the Okto Pulse Web UI and matches the board ID above.
+- Confirm `app/` starts and its API responds at `/` and the database migrations ran successfully.
+
+2) Create validation artifacts in Okto Pulse
+- From the board Spec (approved v20), create one or more Test Cards that represent realistic user scenarios for threaded replies and @mentions (examples below).
+- Link each Test Card to the Spec checklist items and ensure the Spec checklist can be executed by an agent or test runner.
+
+3) Execute scenarios against the running app
+- Manual or automated tests should exercise the following example scenarios:
+  - Post an article comment, reply to it (single-level thread), and verify replies are correctly associated with the parent comment.
+  - Create nested replies (2+ levels) and verify thread ancestry is preserved and returned by the API.
+  - Mention an existing user in a comment using `@username` and verify the mention is recorded and the API returns structured mention metadata (user id, username, and text offsets if applicable).
+  - Verify that notifications or mention hooks (if present) are triggered appropriately when a user is mentioned.
+
+4) Validate and promote results
+- When the Test Cards pass, mark them complete and record the validation outcome on the board.
+- If failures occur, create follow-up tasks in the board, link to failing scenarios, and iterate until validation passes.
+
+---
+
+## Where to look and debug
+
+- `data/pulse.db` — the SQLite demo board state used by Okto Pulse.
+- `docs/reference-run/` — JSON exports and `summary.md` with run metadata and exact object IDs.
+- `app/` — the FastAPI codebase under test. See `app/FORK_NOTES.md` for fork-specific notes and dependency workarounds.
+
+---
+
+If you'd like, I can update the README in the repository now with this scenario-style wording. Tell me to proceed and I'll commit the change, or ask for edits to the scenario or checklist before I commit.
