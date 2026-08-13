@@ -98,8 +98,8 @@ flowchart TD
 | `app/FORK_NOTES.md` | Notes on the fork and how it was set up |
 | `data/pulse.db` | Bundled SQLite board for the demo (seed data) |
 | `docs/decisions/` | Recorded pre-existing conventions (e.g. `0001-token-auth-scheme.md`) |
-| `docs/pulse-walkthrough/` | Walkthrough docs and captured prompts (`prompts/claude-code`, `prompts/gemini`) |
-| `docs/reference-run/` | JSON exports, screenshots, and `summary.md` from the reference run |
+| `docs/walkthrough.md` | Step-by-step guide from clone to closed sprint |
+| `docs/prompts/` | The actual prompts for each pipeline stage, in order |
 | `docker-compose.yml` | Optional compose for demo services |
 | `LICENSE` | Project license |
 
@@ -186,6 +186,8 @@ okto-pulse serve
 
 5. Open the UI at http://localhost:8100, select the `pulse-brownfield-feature-demo` board, and connect two agent identities (Executor and Validator) with separate MCP configs.
 
+From here, follow [`docs/walkthrough.md`](docs/walkthrough.md) for what to do next, stage by stage.
+
 ## Running the target app (`app/`)
 
 The `app/` service is a Poetry-managed FastAPI app that runs against PostgreSQL. When running, the backend is available at: http://localhost:8000
@@ -271,8 +273,8 @@ Work proceeds in four sequential stages; within a stage, tasks can run in any or
 ## Where to Find Artifacts
 
 - `data/pulse.db`: SQLite database representing the live walkthrough state used by the demo.
-- `docs/reference-run/`: JSON exports, `summary.md`, and screenshots with run metadata and object IDs.
-- `docs/pulse-walkthrough/`: walkthrough notes and the actual prompts used with each agent (`prompts/claude-code`, `prompts/gemini`).
+- `docs/walkthrough.md`: what to do after cloning the repo, stage by stage.
+- `docs/prompts/`: the actual prompt for each stage, in the order you'll use them.
 - `docs/decisions/`: recorded pre-existing conventions the spec had to respect (e.g. `0001-token-auth-scheme.md`).
 - `app/`: FastAPI codebase fork where comments threading and mentions backend extension is implemented. See `app/FORK_NOTES.md` for fork-specific notes.
 
