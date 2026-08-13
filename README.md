@@ -97,7 +97,7 @@ flowchart TD
 | `app/` | Forked FastAPI backend under test (`nsidnev/fastapi-realworld-example-app`) |
 | `app/FORK_NOTES.md` | Notes on the fork and how it was set up |
 | `data/pulse.db` | Bundled SQLite board for the demo (seed data) |
-| `docs/decisions/` | Recorded pre-existing conventions (e.g. `0001-token-auth-scheme.md`) |
+| `docs/decisions/` | Decision records: pre-existing conventions read from the actual code, so both agents build against the same ground truth instead of guessing (e.g. `0001-token-auth-scheme.md`) |
 | `docs/walkthrough.md` | Step-by-step guide from clone to closed sprint |
 | `docs/prompts/` | The actual prompts for each pipeline stage, in order |
 | `docker-compose.yml` | Optional compose for demo services |
@@ -275,7 +275,7 @@ Work proceeds in four sequential stages; within a stage, tasks can run in any or
 - `data/pulse.db`: SQLite database representing the live walkthrough state used by the demo.
 - `docs/walkthrough.md`: what to do after cloning the repo, stage by stage.
 - `docs/prompts/`: the actual prompt for each stage, in the order you'll use them.
-- `docs/decisions/`: recorded pre-existing conventions the spec had to respect (e.g. `0001-token-auth-scheme.md`).
+- `docs/decisions/`: this is a *brownfield* demo, not a greenfield one, so before the spec was written the team read the fork's actual auth and error-handling code and recorded it as a Decision (`0001-token-auth-scheme.md`), rather than assuming the shape from the upstream spec doc. Refinement, Spec, and Validation all check new work against it, so the feature stays consistent with what the codebase already does instead of drifting into a third convention.
 - `app/`: FastAPI codebase fork where comments threading and mentions backend extension is implemented. See `app/FORK_NOTES.md` for fork-specific notes.
 
 ## Contributing & Licensing
