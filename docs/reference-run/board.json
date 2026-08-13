@@ -1,0 +1,13 @@
+[
+  {
+    "id": "af285ee4-9a28-4369-bc9a-ac5ab7c75c7b",
+    "name": "pulse-brownfield-feature-demo",
+    "description": null,
+    "owner_id": "local-user",
+    "realm_id": "local",
+    "settings": "{\"max_scenarios_per_card\": 3, \"skip_test_coverage_global\": false, \"skip_rules_coverage_global\": false, \"skip_trs_coverage_global\": false, \"skip_contract_coverage_global\": false, \"skip_ir_coverage_global\": false, \"skip_or_coverage_global\": false, \"skip_task_requirement_link_gate_global\": false, \"skip_decisions_coverage_global\": false, \"skip_cognitive_consolidation\": false, \"allow_agent_self_answering\": false, \"require_full_context_for_critical_actions\": true, \"qa_require_role_separation\": false, \"reviewer_separation_mode\": \"enforce\", \"lint_languages\": [], \"impact_evidence_mode\": \"require\", \"design_system_gate_mode\": \"off\", \"require_task_validation\": true, \"min_confidence\": 70, \"min_completeness\": 80, \"max_drift\": 50, \"require_spec_validation\": true, \"min_spec_completeness\": 80, \"min_spec_assertiveness\": 80, \"max_spec_ambiguity\": 30, \"require_ideation_ambiguity_gate\": false, \"max_ideation_ambiguity\": 3, \"require_refinement_ambiguity_gate\": false, \"max_refinement_ambiguity\": 3, \"require_spec_resource_task_coverage\": true, \"auto_derive_spec_resources_enabled\": false, \"auto_derive_spec_resource_types\": [], \"require_test_task_for_bug\": true, \"bug_test_gate_min_severity\": \"minor\", \"skip_test_evidence_global\": false, \"cognitive_llm_config\": null}",
+    "default_config_snapshot": "null",
+    "created_at": "2026-08-10 10:59:11",
+    "updated_at": "2026-08-11 06:18:00"
+  }
+]

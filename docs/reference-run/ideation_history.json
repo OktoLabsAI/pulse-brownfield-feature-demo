@@ -1,0 +1,74 @@
+[
+  {
+    "id": "380ab727-1f58-4012-83cd-f27aec48aa02",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "created",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"title\", \"old\": null, \"new\": \"Threaded Replies + @Mentions for Article Comments\"}, {\"field\": \"status\", \"old\": null, \"new\": \"draft\"}, {\"field\": \"problem_statement\", \"old\": null, \"new\": \"The forked RealWorld app (nsidnev/fastapi-realworld-example-app, upstream commit 029eb7781c60d5f563ee8990a0cbfb79b244538c) models article comments as a flat, unordered list: each comment belongs to an article and an author only (see `app/db/repositories/commentaries.py` and the `commentaries` table), with no reply-to relationship and no way to tag another user inside a comment body. This blocks two concrete user needs: (1) replying to a specific existing comment so a conversation reads as a thread instead of a flat wall, and (2) @mentioning another user by username inside a comment so they can be made aware they were referenced. Neither capability exists today in the fork.\"}, {\"field\": \"proposed_approach\", \"old\": null, \"new\": \"Extend the comments domain rather than introducing a new entity, to stay consistent with the existing RealWorld data model:\\n\\n1. **Threading** \\u2014 add a nullable self-referential `parent_comment_id` (FK to `commentaries.id`, same article) to the comment record. A comment with `parent_comment_id = null` is top-level; non-null makes it a reply. Depth is limited to one level (replies-to-top-level-comments only, no reply-to-reply nesting) \\u2014 mirrors lightweight threading (e.g. GitHub PR review threads) rather than arbitrary-depth nesting.\\n2. **@Mentions** \\u2014 parse the comment body for `@username` tokens at write time, resolve each against existing registered usernames (case-sensitive exact match, consistent with existing username lookups elsewhere in the fork), and persist resolved mentions as first-class records (`comment_id`, `mentioned_user_id`) rather than leaving them as unstructured text. Unresolved `@token`s are left as plain text, not linked, and do not error the request.\\n3. **API surface** \\u2014 extend the existing comment create/response schema with `parent_comment_id` (optional on create, present on read) and a `mentions` array (username + user id) on the read response. Existing flat-list comment endpoints keep working unchanged for clients that ignore the new fields.\\n4. **Auth & error conventions** \\u2014 all new/changed endpoints follow ADR 0001 (`Token` auth scheme, not `Bearer`; flat `{\\\"errors\\\": [...]}` error shape). E.g. replying to a nonexistent `parent_comment_id`, or replying to a comment on a different article than the URL's, returns a business-rule error via the existing flat-array shape.\\n5. **Notification delivery** \\u2014 explicitly out of scope. `mentions` are persisted and readable via the API; active notification (email/in-app/websocket) is a separate concern for later.\\n\\nExplicit stated assumptions (not left as silent ambiguity), carried forward unchanged from this feature's original scoping session with the user, which already confirmed this exact scope: one-level-deep threading only; mentions require an exact, case-sensitive existing username; unresolved mentions are silently left as plain text; no notification delivery in this pass.\"}]",
+    "summary": "Ideation created: Threaded Replies + @Mentions for Article Comments",
+    "version": 1,
+    "created_at": "2026-08-13 07:03:10"
+  },
+  {
+    "id": "50d6d9d0-1fe2-4cae-9431-18ed5c197915",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "status_changed",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"status\", \"old\": \"draft\", \"new\": \"review\"}]",
+    "summary": "Status: draft → review",
+    "version": 1,
+    "created_at": "2026-08-13 07:03:37"
+  },
+  {
+    "id": "f3a2620e-9aac-41fe-aa4a-7fe473266b06",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "status_changed",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"status\", \"old\": \"review\", \"new\": \"approved\"}]",
+    "summary": "Status: review → approved",
+    "version": 2,
+    "created_at": "2026-08-13 07:03:52"
+  },
+  {
+    "id": "348e6751-5048-4ff5-bc6f-acb67c5d211b",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "status_changed",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"status\", \"old\": \"approved\", \"new\": \"evaluating\"}]",
+    "summary": "Status: approved → evaluating",
+    "version": 3,
+    "created_at": "2026-08-13 07:03:59"
+  },
+  {
+    "id": "595aa715-76d5-49b7-8e8a-e5d5a95fdfdf",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "complexity_evaluated",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"scope_assessment.domains\", \"old\": null, \"new\": 2}, {\"field\": \"scope_assessment.domains_justification\", \"old\": null, \"new\": \"Touches two things within one service: a DB migration (new column + new table) and the FastAPI comment create/read routes + repository layer. No frontend, no separate service, no MCP changes \\u2014 single bounded context (the comments domain of one backend).\"}, {\"field\": \"scope_assessment.ambiguity\", \"old\": null, \"new\": 2}, {\"field\": \"scope_assessment.ambiguity_justification\", \"old\": null, \"new\": \"Approach is fully pinned: one-level threading via nullable parent_comment_id, case-sensitive exact-match @mentions persisted to a join table, auth/error conventions inherited from ADR 0001. Minor details remain for refinement (exact regex character class for mention tokens, exact migration file naming per the fork's existing convention) but no open design question.\"}, {\"field\": \"scope_assessment.dependencies\", \"old\": null, \"new\": 1}, {\"field\": \"scope_assessment.dependencies_justification\", \"old\": null, \"new\": \"Self-contained within the fork. No external API, no third-party service, no other team's component. Notification delivery (the one thing that could introduce a dependency) is explicitly out of scope for this pass.\"}, {\"field\": \"complexity\", \"old\": null, \"new\": \"medium\"}]",
+    "summary": "Complexity evaluated: medium",
+    "version": 5,
+    "created_at": "2026-08-13 07:04:14"
+  },
+  {
+    "id": "9264d1a8-0989-42b6-8d47-33bd3d5d432b",
+    "ideation_id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "action": "status_changed",
+    "actor_type": "user",
+    "actor_id": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "actor_name": "Claude Assistant",
+    "changes": "[{\"field\": \"status\", \"old\": \"evaluating\", \"new\": \"done\"}]",
+    "summary": "Status: evaluating → done (snapshot v5 created)",
+    "version": 5,
+    "created_at": "2026-08-13 07:05:03"
+  }
+]

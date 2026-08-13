@@ -1,0 +1,26 @@
+[
+  {
+    "id": "31430bea-1fd4-47fa-952b-c0e7d054c241",
+    "board_id": "af285ee4-9a28-4369-bc9a-ac5ab7c75c7b",
+    "title": "Threaded Replies + @Mentions for Article Comments",
+    "description": "Feature ideation for pulse-brownfield-feature-demo. Context: `app/` is a fresh fork of nsidnev/fastapi-realworld-example-app (FastAPI + Postgres RealWorld/Conduit clone), documented in `app/FORK_NOTES.md`. Auth/error conventions are documented in `docs/decisions/0001-token-auth-scheme.md`. This board was reset (prior ideation/refinement/spec/sprint/card chains hard-deleted) so this pipeline can be authored fresh and handed off pre-validation for a live walkthrough.",
+    "problem_statement": "The forked RealWorld app (nsidnev/fastapi-realworld-example-app, upstream commit 029eb7781c60d5f563ee8990a0cbfb79b244538c) models article comments as a flat, unordered list: each comment belongs to an article and an author only (see `app/db/repositories/commentaries.py` and the `commentaries` table), with no reply-to relationship and no way to tag another user inside a comment body. This blocks two concrete user needs: (1) replying to a specific existing comment so a conversation reads as a thread instead of a flat wall, and (2) @mentioning another user by username inside a comment so they can be made aware they were referenced. Neither capability exists today in the fork.",
+    "proposed_approach": "Extend the comments domain rather than introducing a new entity, to stay consistent with the existing RealWorld data model:\n\n1. **Threading** — add a nullable self-referential `parent_comment_id` (FK to `commentaries.id`, same article) to the comment record. A comment with `parent_comment_id = null` is top-level; non-null makes it a reply. Depth is limited to one level (replies-to-top-level-comments only, no reply-to-reply nesting) — mirrors lightweight threading (e.g. GitHub PR review threads) rather than arbitrary-depth nesting.\n2. **@Mentions** — parse the comment body for `@username` tokens at write time, resolve each against existing registered usernames (case-sensitive exact match, consistent with existing username lookups elsewhere in the fork), and persist resolved mentions as first-class records (`comment_id`, `mentioned_user_id`) rather than leaving them as unstructured text. Unresolved `@token`s are left as plain text, not linked, and do not error the request.\n3. **API surface** — extend the existing comment create/response schema with `parent_comment_id` (optional on create, present on read) and a `mentions` array (username + user id) on the read response. Existing flat-list comment endpoints keep working unchanged for clients that ignore the new fields.\n4. **Auth & error conventions** — all new/changed endpoints follow ADR 0001 (`Token` auth scheme, not `Bearer`; flat `{\"errors\": [...]}` error shape). E.g. replying to a nonexistent `parent_comment_id`, or replying to a comment on a different article than the URL's, returns a business-rule error via the existing flat-array shape.\n5. **Notification delivery** — explicitly out of scope. `mentions` are persisted and readable via the API; active notification (email/in-app/websocket) is a separate concern for later.\n\nExplicit stated assumptions (not left as silent ambiguity), carried forward unchanged from this feature's original scoping session with the user, which already confirmed this exact scope: one-level-deep threading only; mentions require an exact, case-sensitive existing username; unresolved mentions are silently left as plain text; no notification delivery in this pass.",
+    "scope_assessment": "{\"domains\": 2, \"ambiguity\": 2, \"dependencies\": 1, \"domains_justification\": \"Touches two things within one service: a DB migration (new column + new table) and the FastAPI comment create/read routes + repository layer. No frontend, no separate service, no MCP changes \\u2014 single bounded context (the comments domain of one backend).\", \"ambiguity_justification\": \"Approach is fully pinned: one-level threading via nullable parent_comment_id, case-sensitive exact-match @mentions persisted to a join table, auth/error conventions inherited from ADR 0001. Minor details remain for refinement (exact regex character class for mention tokens, exact migration file naming per the fork's existing convention) but no open design question.\", \"dependencies_justification\": \"Self-contained within the fork. No external API, no third-party service, no other team's component. Notification delivery (the one thing that could introduce a dependency) is explicitly out of scope for this pass.\"}",
+    "complexity": "medium",
+    "status": "done",
+    "version": 6,
+    "assignee_id": null,
+    "created_by": "e59bba5a-9ef5-4071-977b-c9b4fad28233",
+    "created_at": "2026-08-13 07:03:10",
+    "updated_at": "2026-08-13 07:05:03",
+    "labels": "[\"feature\", \"comments\", \"brownfield-demo\"]",
+    "screen_mockups": null,
+    "archived": 0,
+    "pre_archive_status": null,
+    "skip_ambiguity_gate": 0,
+    "cancellation_reason": null,
+    "cancelled_at": null,
+    "cancelled_by": null
+  }
+]
