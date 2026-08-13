@@ -280,7 +280,7 @@ Work proceeds in four sequential stages; within a stage, tasks can run in any or
 
 If you want to reproduce the demo or iterate on the sprint: fork this repo, seed your local Okto Pulse data as above, and connect your Builder and Validator agent identities.
 
-This repository is provided under the terms of the included `LICENSE` file.
+This repository is provided under the terms of the included ` ELASTIC LICENSE 2.0` file.
 
 ## Conclusion
 
