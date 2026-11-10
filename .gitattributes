@@ -1,0 +1,4 @@
+# Deploy files run in a Linux container; keep LF even when checked out on Windows.
+deploy/** text eol=lf
+# The seed database must never be converted.
+deploy/**/*.db binary

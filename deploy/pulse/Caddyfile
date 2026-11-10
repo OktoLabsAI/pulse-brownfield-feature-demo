@@ -1,0 +1,46 @@
+# Public entrypoint. Pulse Community has NO login of its own, so everything is gated here.
+{
+	admin off
+	auto_https off
+}
+
+(mcp_proxy) {
+	reverse_proxy 127.0.0.1:8101 {
+		flush_interval -1
+	}
+}
+
+:{$PORT} {
+	# MCP: "Authorization: Bearer <MCP_TOKEN>" header, or ?token=<MCP_TOKEN>
+	@mcp_hdr {
+		path /mcp /mcp/*
+		header Authorization "Bearer {$MCP_TOKEN}"
+	}
+	@mcp_qry {
+		path /mcp /mcp/*
+		query token={$MCP_TOKEN}
+	}
+	@mcp path /mcp /mcp/*
+	handle @mcp_hdr {
+		import mcp_proxy
+	}
+	handle @mcp_qry {
+		import mcp_proxy
+	}
+	handle @mcp {
+		respond "MCP token required" 401
+	}
+
+	# Health probe for Railway (unauthenticated, reveals nothing)
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	# UI + REST API behind basic auth
+	handle {
+		basic_auth {
+			{$UI_USER} {$UI_PASSWORD_HASH}
+		}
+		reverse_proxy 127.0.0.1:8100
+	}
+}
